@@ -18,8 +18,8 @@ model UserModel {
   profilePhoto String?
   createdBoards BoardModel[]
   participantOfBoards ParticipantsModel[]
-  messages MessageModel[]
-  readMessages MessageReadStatusModel[]
+  messages CommentModel[]
+  readMessages CommentReadStatusModel[]
 }
 
 model BoardModel {
@@ -34,7 +34,7 @@ model BoardModel {
 
 model ParticipantsModel {
   id Int @id @default(autoincrement())
-  board BoardModel @relation(fields: [boardId], references: [id])
+  board BoardModel @relation(fields: [boardId], references: [id], onDelete: Cascade)
   boardId Int @unique
   users UserModel[]
 }
@@ -42,45 +42,46 @@ model ParticipantsModel {
 model ColumnModel {
   id        Int    @id @default(autoincrement())
   name      String
-  board     BoardModel  @relation(fields: [boardId], references: [id])
+  board     BoardModel  @relation(fields: [boardId], references: [id], onDelete: Cascade)
   boardId   Int
   order     Int
   cards     CardModel[]
 }
 
 model CardModel {
-  id          Int      @id @default(autoincrement())
+  cardId      Int      @id @default(autoincrement())
   title       String
-  description String
-  column      ColumnModel  @relation(fields: [columnId], references: [id])
-  columnId    Int @unique
+  description String?
+  column      ColumnModel  @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  columnId    Int
   order       Int
-  photos      CardPhotoModel[]
-  messages    MessageModel[]
+  images      CardImageModel[]
+  comments    CommentModel[]
 }
 
-model CardPhotoModel {
+model CardImageModel {
   id          Int      @id @default(autoincrement())
-  photo String
-  card CardModel @relation(fields: [cardId], references: [id])
-  cardId Int @unique
+  url String
+  imageName String
+  card CardModel @relation(fields: [cardId], references: [cardId], onDelete: Cascade)
+  cardId Int
 }
 
-model MessageModel {
+model CommentModel {
   id             Int      @id @default(autoincrement())
   text           String
   user           UserModel     @relation(fields: [userId], references: [id])
   userId         Int
-  card           CardModel     @relation(fields: [cardId], references: [id])
+  card           CardModel     @relation(fields: [cardId], references: [cardId], onDelete: Cascade)
   cardId         Int
-  readStatuses   MessageReadStatusModel[]
+  readStatuses   CommentReadStatusModel[]
 }
 
-model MessageReadStatusModel {
+model CommentReadStatusModel {
   id        Int      @id @default(autoincrement())
-  messageId Int
   userId    Int
   isRead    Boolean
-  message   MessageModel @relation(fields: [messageId], references: [id])
+  commentId Int
+  comment   CommentModel @relation(fields: [commentId], references: [id], onDelete: Cascade)
   user      UserModel    @relation(fields: [userId], references: [id])
 }

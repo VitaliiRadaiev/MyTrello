@@ -25,7 +25,7 @@ export class UsersController extends BaseController {
 			{ path: '/register', method: 'post', func: this.register, middlewares: [new ValidatePropertiesMiddleware(['email', 'login', 'password'])] },
 			{ path: '/login', method: 'post', func: this.login, middlewares: [new ValidatePropertiesMiddleware(['email', 'password'])] },
 			{ path: '/me', method: 'get', func: this.me, middlewares: [new AuthMiddleware(this.configService.get('SECRET'))] },
-			{ path: '/me', method: 'put', func: this.updateProfile, middlewares: [new AuthMiddleware(this.configService.get('SECRET')), new ValidatePropertiesMiddleware(['login'])] },
+			{ path: '/me', method: 'put', func: this.updateProfile, middlewares: [new AuthMiddleware(this.configService.get('SECRET'))] },
 			{ path: '/', method: 'get', func: this.getAllUsers, middlewares: [new AuthMiddleware(this.configService.get('SECRET'))] },
 			{ path: '/:userId', method: 'get', func: this.getUserInfo, middlewares: [new AuthMiddleware(this.configService.get('SECRET'))] },
 		]);
@@ -89,7 +89,7 @@ export class UsersController extends BaseController {
 
 	async me(req: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
-			const user = await this.usersService.getUser(req.user.id)
+			const user = await this.usersService.getUserInfo(req.user.id)
 			if (user) {
 				this.ok(res, user);
 			} else {
@@ -104,6 +104,11 @@ export class UsersController extends BaseController {
 	async updateProfile({ body, files, user }: Request, res: Response, next: NextFunction): Promise<void> {
 		try {
 			const profileData = body;
+			if(!(profileData['login'] || files?.photo)) {
+				this.error(res, 422, 'The request must have at least one of the following properties: login, photo (file)');
+				return;
+			}
+
 			profileData.profilePhoto = await new Promise((rej) => {
 				if (files && Object.keys(files).length >= 1) {
 					const photo = files.photo as fileUpload.UploadedFile;
@@ -111,18 +116,23 @@ export class UsersController extends BaseController {
 
                     photo.mv(uploadPath, async (err) => {
                         if (err) {
-                            rej(null);
+                            rej(undefined);
                         }
                         rej(`/uploads/profilePhoto_userId=${user.id}${extname(photo.name)}`);
                     });
 				} else {
-                    rej(null);
+                    rej(undefined);
                 }
 			})
-			const updateProfile = await this.usersService.updateProfile(user.id, profileData);
+			
+			const updatedProfile = await this.usersService
+			.updateProfile(
+				user.id, 
+				{ login: profileData.login, profilePhoto: profileData.profilePhoto }
+			);
 
-			if (updateProfile) {
-				this.ok(res, updateProfile);
+			if (updatedProfile) {
+				this.ok(res, updatedProfile);
 			} else {
 				this.error(res, 404, 'User is not found.');
 			}

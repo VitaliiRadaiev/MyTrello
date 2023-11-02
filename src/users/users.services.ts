@@ -53,31 +53,11 @@ export class UsersServices {
         return isValidate ? user : null;
     }
 
-    async getUser(id: number): Promise<IUserModel | null> {
-        const user = await this.prismaService.client.userModel.findFirst({
-            where: {
-                id
-            }
-        })
-
-        if (user) {
-            const { password, ...rest } = user;
-            return rest;
-        } else {
-            return null;
-        }
-    }
-
-    async updateProfile(userId: number, updateData: { login: string, profilePhoto?: string | null }): Promise<IUserModel | null> {
+    async updateProfile(userId: number, updateData: { login?: string, profilePhoto?: string | null }): Promise<IUserModel | null> {
         try {
-            const data: { login: string, profilePhoto?: string | null } = {
-                login: updateData.login,
-            }
-            if(updateData.profilePhoto) data.profilePhoto = updateData.profilePhoto;
-        
             const updatedUser = await this.prismaService.client.userModel.update({
                 where: { id: userId },
-                data,
+                data: updateData
             });
             const { password, ...rest } = updatedUser;
             return rest;
@@ -99,10 +79,15 @@ export class UsersServices {
             where: {
                 id: userId,
             },
+            select: {
+                id: true,
+                email: true,
+                login: true,
+                profilePhoto: true
+            }
         });
         if(user) {
-            const {password, ...rest} = user;
-            return rest;
+            return user;
         } else {
             return null;
         }

@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { BaseController } from '../common/base.controller';
 import { injectable, inject } from 'inversify';
+import { join } from 'path';
+import { existsSync, rm } from 'fs';
 import { TYPES } from '../types';
 import { ColumnsServices } from './columns.services';
 import { ILogger } from '../logger/logger.interface';
@@ -21,15 +23,16 @@ export class ColumnsController extends BaseController {
         this.bindRoutes([
             { path: '/', method: 'post', func: this.createColumn, middlewares: [new AuthMiddleware(this.configService.get('SECRET')), new ValidatePropertiesMiddleware(['boardId', 'name'])] },
             { path: '/:columnId', method: 'get', func: this.getColumnById, middlewares: [new AuthMiddleware(this.configService.get('SECRET'))] },
-            { path: '/:columnId', method: 'put', func: this.updateColumn, middlewares: [new AuthMiddleware(this.configService.get('SECRET')), new ValidatePropertiesMiddleware(['name', 'order'])] },
+            { path: '/:columnId', method: 'put', func: this.updateColumn, middlewares: [new AuthMiddleware(this.configService.get('SECRET')), new ValidatePropertiesMiddleware(['name', 'order'], true)] },
             { path: '/:columnId', method: 'delete', func: this.deleteColumn, middlewares: [new AuthMiddleware(this.configService.get('SECRET'))] },
+            { path: '/:columnId/cards', method: 'get', func: this.getCardsByColumnId, middlewares: [new AuthMiddleware(this.configService.get('SECRET'))] },
         ]);
     }
 
     async createColumn({ body }: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const boardId = body.boardId;
-            const board = await this.boardsServices.getBoardInfo(boardId);
+            const board = await this.boardsServices.getBoardInfo(Number(boardId));
 
             if (!board) {
                 this.error(res, 404, 'Board is not found.');
@@ -75,15 +78,47 @@ export class ColumnsController extends BaseController {
     async deleteColumn(req: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const columnId = parseInt(req.params.columnId, 10);
-            const success = await this.columnsServices.deleteColumn(columnId);
-            if (success) {
-                this.ok(res, { message: 'Column deleted successfully.' });
-            } else {
+            const column = await this.columnsServices.getColumnById(columnId);
+            if(!column) {
                 this.error(res, 404, 'Column not found.');
+                return;
             }
+
+            const cards = await this.columnsServices.getCardsByColumnId(columnId);
+
+            for(const card of cards) {
+                const folderPath = join(__dirname, '../public/uploads/', `cardId_${card.cardId}`);
+                if(existsSync(folderPath)) {
+                    rm(folderPath, { recursive: true, force: true }, (err) => {
+                        if(err) this.loggerservice.error(err);
+                    });
+                }
+            }
+
+            await this.columnsServices.deleteColumn(columnId);
+            
+            this.ok(res, { message: 'Column deleted successfully.' });
         } catch (error) {
             this.error(res, 500, 'Something went wrong, please try again later.');
         }
     }
 
+    async getCardsByColumnId(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const columnId = parseInt(req.params.columnId, 10);
+            const column = await this.columnsServices.getColumnById(columnId);
+
+            if (!column) {
+                this.error(res, 404, 'Column is not found.');
+                return;
+            }
+
+            const cards = await this.columnsServices.getCardsByColumnId(columnId);
+            this.ok(res, cards);
+        } catch (error) {
+            console.log(error);
+            
+            this.error(res, 500, 'Something went wrong while fetching cards.');
+        }
+    }
 }

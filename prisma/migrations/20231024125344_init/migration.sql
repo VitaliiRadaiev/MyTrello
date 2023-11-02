@@ -20,7 +20,7 @@ CREATE TABLE "BoardModel" (
 CREATE TABLE "ParticipantsModel" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "boardId" INTEGER NOT NULL,
-    CONSTRAINT "ParticipantsModel_boardId_fkey" FOREIGN KEY ("boardId") REFERENCES "BoardModel" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "ParticipantsModel_boardId_fkey" FOREIGN KEY ("boardId") REFERENCES "BoardModel" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -29,17 +29,17 @@ CREATE TABLE "ColumnModel" (
     "name" TEXT NOT NULL,
     "boardId" INTEGER NOT NULL,
     "order" INTEGER NOT NULL,
-    CONSTRAINT "ColumnModel_boardId_fkey" FOREIGN KEY ("boardId") REFERENCES "BoardModel" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "ColumnModel_boardId_fkey" FOREIGN KEY ("boardId") REFERENCES "BoardModel" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
 CREATE TABLE "CardModel" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "cardId" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "title" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
+    "description" TEXT,
     "columnId" INTEGER NOT NULL,
     "order" INTEGER NOT NULL,
-    CONSTRAINT "CardModel_columnId_fkey" FOREIGN KEY ("columnId") REFERENCES "ColumnModel" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "CardModel_columnId_fkey" FOREIGN KEY ("columnId") REFERENCES "ColumnModel" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -47,7 +47,7 @@ CREATE TABLE "CardPhotoModel" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "photo" TEXT NOT NULL,
     "cardId" INTEGER NOT NULL,
-    CONSTRAINT "CardPhotoModel_cardId_fkey" FOREIGN KEY ("cardId") REFERENCES "CardModel" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "CardPhotoModel_cardId_fkey" FOREIGN KEY ("cardId") REFERENCES "CardModel" ("cardId") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -57,7 +57,7 @@ CREATE TABLE "MessageModel" (
     "userId" INTEGER NOT NULL,
     "cardId" INTEGER NOT NULL,
     CONSTRAINT "MessageModel_userId_fkey" FOREIGN KEY ("userId") REFERENCES "UserModel" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "MessageModel_cardId_fkey" FOREIGN KEY ("cardId") REFERENCES "CardModel" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT "MessageModel_cardId_fkey" FOREIGN KEY ("cardId") REFERENCES "CardModel" ("cardId") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- CreateTable
@@ -66,7 +66,7 @@ CREATE TABLE "MessageReadStatusModel" (
     "messageId" INTEGER NOT NULL,
     "userId" INTEGER NOT NULL,
     "isRead" BOOLEAN NOT NULL,
-    CONSTRAINT "MessageReadStatusModel_messageId_fkey" FOREIGN KEY ("messageId") REFERENCES "MessageModel" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT "MessageReadStatusModel_messageId_fkey" FOREIGN KEY ("messageId") REFERENCES "MessageModel" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT "MessageReadStatusModel_userId_fkey" FOREIGN KEY ("userId") REFERENCES "UserModel" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
@@ -83,9 +83,6 @@ CREATE UNIQUE INDEX "UserModel_email_key" ON "UserModel"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ParticipantsModel_boardId_key" ON "ParticipantsModel"("boardId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "CardModel_columnId_key" ON "CardModel"("columnId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CardPhotoModel_cardId_key" ON "CardPhotoModel"("cardId");

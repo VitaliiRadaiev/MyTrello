@@ -1,11 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trello</title>
 </head>
+
 <body>
-    
+    <form>
+        <input name="images" type="file" accept=".png, .jpg, .jpeg" multiple>
+        <input name="name" type="text">
+        <button>send</button>
+    </form>
+
+    <script>
+        const form = document.querySelector('form');
+        form.addEventListener('submit', formSubmit);
+        const jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTY5NzczMTMzNn0.EE5gBfyCuzje8qUCV7za2uIfkBIMsMbHLO1y3R0lLag';
+        let ws = new WebSocket(`ws://localhost:8001/?token=${jwt}`);
+
+        // ws.onopen = (res) => {
+        //     messagesForm.addEventListener('submit', (e) => {
+        //         e.preventDefault();
+        //         send(ws);
+        //     })
+        // }
+
+        ws.onmessage = async (event) => {
+            let data = await JSON.parse(event.data);
+            console.log(data);
+        }
+
+        ws.onclose = (event) => {
+            console.log('WebSocket connection closed.');
+        }
+
+        function formSubmit(e) {
+            e.preventDefault();
+
+            const data = {
+                typer: 'ws/api/updateBoard',
+                body: {
+                    boardId: 7
+                }
+            }
+
+            ws.send(new FormData(form));
+           // ws.send(JSON.stringify(data));
+        }
+    </script>
 </body>
+
 </html>

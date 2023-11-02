@@ -10,4 +10,8 @@ export const TYPES = {
     BoardsServices: Symbol.for('BoardsServices'),
     ColumnsController: Symbol.for('ColumnsController'),
     ColumnsServices: Symbol.for('ColumnsServices'),
+    CardsController: Symbol.for('CardsController'),
+    CardsServices: Symbol.for('CardsServices'),
+    Websocket: Symbol.for('Websocket'),
+    WsBoardController: Symbol.for('WsBoardController'),
 }
