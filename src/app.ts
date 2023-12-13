@@ -71,6 +71,6 @@ export class App {
         await this.prismaService.connect();
         this.useWebsocket();
         this.server.listen(this.port);
-        console.log('Server is running on http://localhost:8001');
+        console.log('Server is running on ' + this.configService.get('HOST'));
     }
 }
