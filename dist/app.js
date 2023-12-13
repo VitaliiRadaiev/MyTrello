@@ -50,7 +50,7 @@ let App = class App {
         this.cardsController = cardsController;
         this.websocket = websocket;
         this.app = (0, express_1.default)();
-        this.port = 8001;
+        this.port = 80;
         this.server = (0, http_1.createServer)(this.app);
         this.wss = new ws_1.WebSocketServer({ server: this.server, path: '/api/ws' });
     }

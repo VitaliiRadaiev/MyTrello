@@ -34,7 +34,7 @@ export class App {
         @inject(TYPES.Websocket) private websocket: Websocket,  
     ) {
         this.app = express();
-        this.port = 8001;
+        this.port = 80;
         this.server = createServer(this.app);
         this.wss = new WebSocketServer({ server: this.server, path: '/api/ws' });
     }
