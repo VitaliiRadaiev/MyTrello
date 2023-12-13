@@ -5,6 +5,7 @@ import { IUserModel } from "../users/users.types";
 export interface IBoardModel {
     id: number;
     name: string;
+    createdById: number;
     createdBy: IUserModel;
     previewImage: string | null;
     participants: IParticipantsModel | null;
@@ -20,24 +21,7 @@ export interface ICreatedBoard {
 
 export interface IParticipantsModel {
     id: number;
-    board: IBoardModel;
-    users?: IUserModel[];
+    boardId: number;
+    users: IUserModel[];
 }
 
-// IMessageModel
-export interface IMessageModel {
-    id: number;
-    text: string;
-    user: IUserModel;
-    card: ICardModel;
-    readStatuses: IMessageReadStatusModel[];
-}
-
-export interface IMessageReadStatusModel {
-    id: number;
-    messageId: number;
-    userId: number;
-    isRead: boolean;
-    message: IMessageModel;
-    user: IUserModel;
-}

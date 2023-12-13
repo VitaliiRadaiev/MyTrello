@@ -1,4 +1,4 @@
-import { IMessageModel } from "../boards/boards.types";
+import { IUserModel } from "../users/users.types";
 
 export interface ICardModel {
     cardId: number;
@@ -7,7 +7,7 @@ export interface ICardModel {
     columnId: number;
     order: number;
     images?: ICardImageModel[];
-    messages?: IMessageModel[];
+    comments?: ICommentModel[];
 }
 
 export interface ICardImageModel {
@@ -26,4 +26,22 @@ export interface IUpdateCardData {
 export interface IUploadImage {
     url: string,
     imageName: string
+}
+
+export interface ICommentModel {
+    id: number;
+    text: string;
+    user: IUserModel;
+    card: ICardModel;
+    readStatuses: ICommentReadStatusModel[];
+    createdAt: Date;
+}
+
+export interface ICommentReadStatusModel {
+    id: number;
+    messageId: number;
+    userId: number;
+    isRead: boolean;
+    comment: ICommentModel;
+    user: IUserModel;
 }

@@ -2,7 +2,7 @@ import { injectable, inject } from 'inversify';
 import { PrismaService } from '../database/prisma.service';
 import { TYPES } from '../types';
 import { ICardModel, IUpdateCardData, IUploadImage } from './cards.types';
-import { CardImageModel, CommentModel, CommentReadStatusModel } from '@prisma/client';
+import { CardImageModel, CardModel, CommentModel, CommentReadStatusModel } from '@prisma/client';
 
 @injectable()
 export class CardsServices {
@@ -22,26 +22,35 @@ export class CardsServices {
                 order: cardsOfColumn.length + 1,
             },
         });
-        return createdCard;
+        return await this.getCardById(createdCard.cardId); 
     }
 
-    async getCardById(cardId: number): Promise<object | null> {
+    async getCardById(cardId: number): Promise<any | null> {
         const card = await this.prismaService.client.cardModel.findUnique({
             where: { cardId },
             include: {
                 images: true,
-                comments: true,
-                column: true
+                comments: {
+                    include: {
+                        readStatuses: true,
+                        user: {
+                            select: {
+                                id: true,
+                                login: true,
+                                profilePhoto: true,
+                                email: true
+                            }
+                        }
+                    },
+                    orderBy: { createdAt: 'asc' },
+                }
             }
         });
 
         if (card) {
             return {
                 ...card,
-                comments: {
-                    items: card?.comments,
-                    totalCount: card?.comments.length
-                }
+                comments: card.comments.reverse()
             };
         } else {
             return null;
@@ -202,7 +211,8 @@ export class CardsServices {
             data: {
                 text,
                 user: { connect: { id: userId } },
-                card: { connect: { cardId } }
+                card: { connect: { cardId } },
+                createdAt: new Date().toISOString(),
             }
         })
 

@@ -11,48 +11,48 @@ datasource db {
 }
 
 model UserModel {
-  id Int @id @default(autoincrement())
-  email String @unique
-  login String
-  password String
-  profilePhoto String?
-  createdBoards BoardModel[]
+  id                  Int                      @id @default(autoincrement())
+  email               String                   @unique
+  login               String
+  password            String
+  profilePhoto        String?
+  createdBoards       BoardModel[]
   participantOfBoards ParticipantsModel[]
-  messages CommentModel[]
-  readMessages CommentReadStatusModel[]
+  messages            CommentModel[]
+  readMessages        CommentReadStatusModel[]
 }
 
 model BoardModel {
-  id Int @id @default(autoincrement())
-  name String
-  createdBy UserModel @relation(fields: [createdById], references: [id])
-  createdById Int
+  id           Int                @id @default(autoincrement())
+  name         String
+  createdBy    UserModel          @relation(fields: [createdById], references: [id])
+  createdById  Int
   previewImage String?
   participants ParticipantsModel?
-  columns ColumnModel[]
+  columns      ColumnModel[]
 }
 
 model ParticipantsModel {
-  id Int @id @default(autoincrement())
-  board BoardModel @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  boardId Int @unique
-  users UserModel[]
+  id      Int         @id @default(autoincrement())
+  board   BoardModel  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId Int         @unique
+  users   UserModel[]
 }
 
 model ColumnModel {
-  id        Int    @id @default(autoincrement())
-  name      String
-  board     BoardModel  @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  boardId   Int
-  order     Int
-  cards     CardModel[]
+  id      Int         @id @default(autoincrement())
+  name    String
+  board   BoardModel  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardId Int
+  order   Int
+  cards   CardModel[]
 }
 
 model CardModel {
-  cardId      Int      @id @default(autoincrement())
+  cardId      Int              @id @default(autoincrement())
   title       String
   description String?
-  column      ColumnModel  @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  column      ColumnModel      @relation(fields: [columnId], references: [id], onDelete: Cascade)
   columnId    Int
   order       Int
   images      CardImageModel[]
@@ -60,25 +60,26 @@ model CardModel {
 }
 
 model CardImageModel {
-  id          Int      @id @default(autoincrement())
-  url String
+  id        Int       @id @default(autoincrement())
+  url       String
   imageName String
-  card CardModel @relation(fields: [cardId], references: [cardId], onDelete: Cascade)
-  cardId Int
+  card      CardModel @relation(fields: [cardId], references: [cardId], onDelete: Cascade)
+  cardId    Int
 }
 
 model CommentModel {
-  id             Int      @id @default(autoincrement())
-  text           String
-  user           UserModel     @relation(fields: [userId], references: [id])
-  userId         Int
-  card           CardModel     @relation(fields: [cardId], references: [cardId], onDelete: Cascade)
-  cardId         Int
-  readStatuses   CommentReadStatusModel[]
+  id           Int                      @id @default(autoincrement())
+  text         String
+  user         UserModel                @relation(fields: [userId], references: [id])
+  userId       Int
+  card         CardModel                @relation(fields: [cardId], references: [cardId], onDelete: Cascade)
+  cardId       Int
+  readStatuses CommentReadStatusModel[]
+  createdAt    DateTime
 }
 
 model CommentReadStatusModel {
-  id        Int      @id @default(autoincrement())
+  id        Int          @id @default(autoincrement())
   userId    Int
   isRead    Boolean
   commentId Int

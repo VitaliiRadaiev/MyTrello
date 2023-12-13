@@ -10,6 +10,8 @@ import { IConfigService } from '../config/config.service.interface';
 import { AuthMiddleware } from '../common/auth.middleware';
 import { BoardsServices } from '../boards/boards.services';
 import { ValidatePropertiesMiddleware } from '../common/validateProperties.middleware';
+import { WsSender } from '../websocket/ws.sender';
+import { getClietntsIds } from '../utils/utils';
 
 @injectable()
 export class ColumnsController extends BaseController {
@@ -18,6 +20,7 @@ export class ColumnsController extends BaseController {
         @inject(TYPES.ConfigService) private configService: IConfigService,
         @inject(TYPES.ColumnsServices) private columnsServices: ColumnsServices,
         @inject(TYPES.BoardsServices) private boardsServices: BoardsServices,
+        @inject(TYPES.WsSender) private wsSender: WsSender,
     ) {
         super(loggerservice);
         this.bindRoutes([
@@ -29,7 +32,7 @@ export class ColumnsController extends BaseController {
         ]);
     }
 
-    async createColumn({ body }: Request, res: Response, next: NextFunction): Promise<void> {
+    async createColumn({ body, user }: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const boardId = body.boardId;
             const board = await this.boardsServices.getBoardInfo(Number(boardId));
@@ -41,6 +44,12 @@ export class ColumnsController extends BaseController {
 
             const column = await this.columnsServices.createColumn(body);
             this.ok(res, column);
+
+            const participants = await this.boardsServices.getParticipants(boardId);
+            if(!participants) return;
+            const clientsIds = getClietntsIds(user.id, participants.users);
+            const columns = await this.boardsServices.getColumnsByBoardId(boardId);
+            this.wsSender.sendMessage(clientsIds, { type: 'ws/api/createColumn', body: columns });
         } catch (error) {
             this.loggerservice.error(error);
             this.error(res, 500, 'Something went wrong, please try again later.');
@@ -67,6 +76,13 @@ export class ColumnsController extends BaseController {
             const updatedColumn = await this.columnsServices.updateColumn(columnId, req.body);
             if (updatedColumn) {
                 this.ok(res, updatedColumn);
+                
+                const boardId = updatedColumn.boardId;
+                const participants = await this.boardsServices.getParticipants(boardId);
+                if(!participants) return;
+                const clientsIds = getClietntsIds(req.user.id, participants.users);
+                const columns = await this.boardsServices.getColumnsByBoardId(boardId);
+                this.wsSender.sendMessage(clientsIds, { type: 'ws/api/updateColumn', body: columns });
             } else {
                 this.error(res, 404, 'Column not found.');
             }
@@ -98,6 +114,13 @@ export class ColumnsController extends BaseController {
             await this.columnsServices.deleteColumn(columnId);
             
             this.ok(res, { message: 'Column deleted successfully.' });
+            
+            const boardId = column.boardId;
+            const participants = await this.boardsServices.getParticipants(boardId);
+            if(!participants) return;
+            const clientsIds = getClietntsIds(req.user.id, participants.users);
+            const columns = await this.boardsServices.getColumnsByBoardId(boardId);
+            this.wsSender.sendMessage(clientsIds, { type: 'ws/api/deleteColumn', body: columns });
         } catch (error) {
             this.error(res, 500, 'Something went wrong, please try again later.');
         }

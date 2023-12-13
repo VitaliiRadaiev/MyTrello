@@ -12,8 +12,10 @@ import { ValidatePropertiesMiddleware } from "../common/validateProperties.middl
 import fileUpload from "express-fileupload";
 import { v4 as uuidv4 } from 'uuid';
 import { ColumnsServices } from "../columns/columns.services";
-import { CardsServices } from "../cards/cards.services";
 import { UsersServices } from "../users/users.services";
+import { WsSender } from '../websocket/ws.sender';
+import { IParticipantsModel } from "./boards.types";
+import { getClietntsIds } from "../utils/utils";
 
 @injectable()
 export class BoardsController extends BaseController {
@@ -24,6 +26,7 @@ export class BoardsController extends BaseController {
         @inject(TYPES.BoardsServices) private boardsService: BoardsServices,
         @inject(TYPES.ColumnsServices) private columnsServices: ColumnsServices,
         @inject(TYPES.UsersServices) private usersServices: UsersServices,
+        @inject(TYPES.WsSender) private wsSender: WsSender,
     ) {
         super(loggerservice);
         this.bindRoutes([
@@ -101,7 +104,7 @@ export class BoardsController extends BaseController {
         }
     }
 
-    async updateBoardInfo({ body, files, params }: Request, res: Response, next: NextFunction): Promise<void> {
+    async updateBoardInfo({ body, files, params, ...req }: Request, res: Response, next: NextFunction): Promise<void> {
         try {
             const boardId = parseInt(params.boardId, 10);
             const boardData = body;
@@ -143,7 +146,11 @@ export class BoardsController extends BaseController {
 
             if (updatedBoard) {
                 this.ok(res, updatedBoard);
-                this.WsBoardController.uploadBoard(boardId, { type: 'ws/api/uploadBoard', body: updatedBoard })
+
+                const participants = await this.boardsService.getParticipants(boardId);
+                if(!participants) return;
+                const clientsIds = getClietntsIds(req.user.id, participants.users);
+                this.wsSender.sendMessage(clientsIds, { type: 'ws/api/updateBoardInfo', body: updatedBoard });
             } else {
                 this.error(res, 404, 'Board is not found.');
             }
@@ -178,9 +185,14 @@ export class BoardsController extends BaseController {
                 }
             }
 
+            const participants = await this.boardsService.getParticipants(boardId);
             const success = await this.boardsService.deleteBoard(boardId);
+
             if (success) {
                 this.ok(res, { message: 'Board deleted successfully.' });
+                if(!participants) return;
+                const clientsIds = getClietntsIds(req.user.id, participants.users);
+                this.wsSender.sendMessage(clientsIds, { type: 'ws/api/deleteBoard', body: { boardId, message: `Board by id-${boardId} had deleted` } });
             } else {
                 this.error(res, 404, 'Board is not found.');
             }
@@ -229,6 +241,12 @@ export class BoardsController extends BaseController {
             }
             const result = await this.boardsService.addParticipant(board.participants.id, userId);
             this.ok(res, result);
+
+            const participants = await this.boardsService.getParticipants(boardId);
+            const updatedBoard = await this.boardsService.getBoardInfo(boardId);
+            if(!participants || !updatedBoard) return;
+            const clientsIds = getClietntsIds(req.user.id, participants.users);
+            this.wsSender.sendMessage(clientsIds, { type: 'ws/api/addParticipantToBoard', body: updatedBoard });
         } catch (error) {
             this.error(res, 500, 'Something went wrong, please try again later.');
         }
@@ -277,8 +295,17 @@ export class BoardsController extends BaseController {
                 this.error(res, 500, 'Something went wrong, please try again later.');
                 return;
             }
+            const participants = await this.boardsService.getParticipants(boardId);
+
             const result = await this.boardsService.removeParticipant(board.participants.id, userId);
             this.ok(res, result);
+
+            if(!participants) return;
+            const clientsIds = getClietntsIds(req.user.id, participants.users);
+            this.wsSender.sendMessage(clientsIds, { type: 'ws/api/removeParticipantFromBoard', body: {
+                removedUserId: userId,
+                participants: result
+            } });
         } catch (error) {
             this.error(res, 500, 'Something went wrong, please try again later.');
         }

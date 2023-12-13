@@ -17,7 +17,8 @@ import { ColumnsServices } from "./columns/columns.services";
 import { CardsController } from "./cards/cards.controller";
 import { CardsServices } from "./cards/cards.services";
 import { Websocket } from "./websocket/websocket";
-import { WsBoardController } from "./websocket/board/ws.board.controller";
+import { WsSender } from "./websocket/ws.sender";
+import { WsClients } from "./websocket/ws.clients";
 
 export interface IBootstrapReturn {
     appContainer: Container,
@@ -39,7 +40,8 @@ export const appBindings = new ContainerModule((bind: interfaces.Bind) => {
     bind<CardsController>(TYPES.CardsController).to(CardsController).inRequestScope();
     bind<CardsServices>(TYPES.CardsServices).to(CardsServices).inRequestScope();
     bind<Websocket>(TYPES.Websocket).to(Websocket).inRequestScope();
-    bind<WsBoardController>(TYPES.WsBoardController).to(WsBoardController).inRequestScope();
+    bind<WsSender>(TYPES.WsSender).to(WsSender).inRequestScope();
+    bind<WsClients>(TYPES.WsClients).to(WsClients).inSingletonScope();
 })
 
 function bootstrap(): IBootstrapReturn {

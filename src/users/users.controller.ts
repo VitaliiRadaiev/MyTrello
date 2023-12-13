@@ -58,6 +58,7 @@ export class UsersController extends BaseController {
 			if (result) {
 				const jwt = await this.signJWT(result.id, result.email, this.configService.get('SECRET'));
 				res.setHeader('X-JWT', jwt);
+				res.setHeader('Access-Control-Expose-Headers', 'X-JWT');
 				this.ok(res);
 			} else {
 				this.error(res, 401, 'Authorisation Error [login].');

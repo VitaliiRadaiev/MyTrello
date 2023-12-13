@@ -36,7 +36,7 @@ export class App {
         this.app = express();
         this.port = 8001;
         this.server = createServer(this.app);
-        this.wss = new WebSocketServer({ server: this.server, path: '/' });
+        this.wss = new WebSocketServer({ server: this.server, path: '/api/ws' });
     }
 
     private useMiddleware(): void {

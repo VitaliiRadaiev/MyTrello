@@ -3,6 +3,7 @@ import { PrismaService } from '../database/prisma.service';
 
 import { TYPES } from '../types';
 import { IColumnModel, IMappedCards } from './columns.types';
+import { ColumnModel } from '@prisma/client';
 
 @injectable()
 export class ColumnsServices {
@@ -20,13 +21,13 @@ export class ColumnsServices {
             data: {
                 board: { connect: { id: boardId } },
                 name,
-                order: columnsOfBoard.length + 1
+                order: columnsOfBoard.length + 1,
             },
         });
-        return createdColumn;
+        return { ...createdColumn, cards: [] };
     }
 
-    async getColumnById(columnId: number): Promise<object | null> {
+    async getColumnById(columnId: number): Promise<ColumnModel | null> {
         const column = await this.prismaService.client.columnModel.findUnique({
             where: { id: columnId },
             include: {
@@ -66,7 +67,16 @@ export class ColumnsServices {
             where: { id: columnId },
             data
         });
-        return updatedColumn;
+        return this.prismaService.client.columnModel.findUnique({
+            where: {
+                id: columnId
+            },
+            include: {
+                cards: {
+                    orderBy: { order: 'asc' }
+                }
+            }
+        });
     }
 
     async deleteColumn(columnId: number): Promise<boolean> {

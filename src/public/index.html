@@ -9,16 +9,18 @@
 
 <body>
     <form>
-        <input name="images" type="file" accept=".png, .jpg, .jpeg" multiple>
-        <input name="name" type="text">
-        <button>send</button>
+        <select name="user">
+            <option selected value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTcwMDU3NjY2Mn0.wOv-5AnWh9SlHLQBxit8DMmkdkhHn6hiohQ-bmBfpIk">user id 1</option>
+            <option value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiZW1haWwiOiJ0ZXN0M0BnbWFpbC5jb20iLCJpYXQiOjE2OTg5Mzg4MzJ9.1BcUsX1hwryWrZxMYMKUUeyOiNJy4wioEeVfusYadzc">user id 3</option>
+        </select>
+        <button>connect</button>
     </form>
 
     <script>
         const form = document.querySelector('form');
         form.addEventListener('submit', formSubmit);
-        const jwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTY5NzczMTMzNn0.EE5gBfyCuzje8qUCV7za2uIfkBIMsMbHLO1y3R0lLag';
-        let ws = new WebSocket(`ws://localhost:8001/?token=${jwt}`);
+        // const jwt = '	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTY5ODkzNTkyOX0.ZghwC0vJtGpo93waowywzGvkO0m27JM8f-9W-B5CsGg';
+        // let ws = new WebSocket(`ws://localhost:8001/?token=${jwt}`);
 
         // ws.onopen = (res) => {
         //     messagesForm.addEventListener('submit', (e) => {
@@ -27,27 +29,36 @@
         //     })
         // }
 
-        ws.onmessage = async (event) => {
-            let data = await JSON.parse(event.data);
-            console.log(data);
-        }
+        // ws.onmessage = async (event) => {
+        //     let data = await JSON.parse(event.data);
+        //     console.log(data);
+        // }
 
-        ws.onclose = (event) => {
-            console.log('WebSocket connection closed.');
-        }
+        // ws.onclose = (event) => {
+        //     console.log('WebSocket connection closed.');
+        // }
 
         function formSubmit(e) {
             e.preventDefault();
+            const jwt = e.target.user.value;
+            let ws = new WebSocket(`ws://localhost:8001/api/ws?token=${jwt}`);
 
-            const data = {
-                typer: 'ws/api/updateBoard',
-                body: {
-                    boardId: 7
-                }
+            ws.onopen = (res) => {
+                console.log('oppen');
+                // messagesForm.addEventListener('submit', (e) => {
+                //     e.preventDefault();
+                //     send(ws);
+                // })
             }
 
-            ws.send(new FormData(form));
-           // ws.send(JSON.stringify(data));
+            ws.onmessage = async (event) => {
+                let data = await JSON.parse(event.data);
+                console.log(data);
+            }
+
+            ws.onclose = (event) => {
+                console.log('WebSocket connection closed.');
+            }
         }
     </script>
 </body>

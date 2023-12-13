@@ -13,5 +13,6 @@ export const TYPES = {
     CardsController: Symbol.for('CardsController'),
     CardsServices: Symbol.for('CardsServices'),
     Websocket: Symbol.for('Websocket'),
-    WsBoardController: Symbol.for('WsBoardController'),
+    WsSender: Symbol.for('WsSender'),
+    WsClients: Symbol.for('WsClients'),
 }
