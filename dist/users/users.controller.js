@@ -117,6 +117,7 @@ let UsersController = class UsersController extends base_controller_1.BaseContro
     }
     me(req, res, next) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log(req.ip);
             try {
                 const user = yield this.usersService.getUserInfo(req.user.id);
                 if (user) {

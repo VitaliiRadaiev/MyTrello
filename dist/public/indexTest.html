@@ -10,8 +10,12 @@
 <body>
     <form>
         <select name="user">
-            <option selected value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTcwMDU3NjY2Mn0.wOv-5AnWh9SlHLQBxit8DMmkdkhHn6hiohQ-bmBfpIk">user id 1</option>
-            <option value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiZW1haWwiOiJ0ZXN0M0BnbWFpbC5jb20iLCJpYXQiOjE2OTg5Mzg4MzJ9.1BcUsX1hwryWrZxMYMKUUeyOiNJy4wioEeVfusYadzc">user id 3</option>
+            <option selected
+                value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTcwMDU3NjY2Mn0.wOv-5AnWh9SlHLQBxit8DMmkdkhHn6hiohQ-bmBfpIk">
+                user id 1</option>
+            <option
+                value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MywiZW1haWwiOiJ0ZXN0M0BnbWFpbC5jb20iLCJpYXQiOjE2OTg5Mzg4MzJ9.1BcUsX1hwryWrZxMYMKUUeyOiNJy4wioEeVfusYadzc">
+                user id 3</option>
         </select>
         <button>connect</button>
     </form>
@@ -19,7 +23,7 @@
     <script>
         const form = document.querySelector('form');
         form.addEventListener('submit', formSubmit);
-        // const jwt = '	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTY5ODkzNTkyOX0.ZghwC0vJtGpo93waowywzGvkO0m27JM8f-9W-B5CsGg';
+        const jwt = '	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTY5ODkzNTkyOX0.ZghwC0vJtGpo93waowywzGvkO0m27JM8f-9W-B5CsGg';
         // let ws = new WebSocket(`ws://localhost:8001/?token=${jwt}`);
 
         // ws.onopen = (res) => {
@@ -34,31 +38,20 @@
         //     console.log(data);
         // }
 
-        // ws.onclose = (event) => {
+        // ws.onclose = (ezvent) => {
         //     console.log('WebSocket connection closed.');
         // }
 
-        function formSubmit(e) {
+        async function formSubmit(e) {
             e.preventDefault();
-            const jwt = e.target.user.value;
-            let ws = new WebSocket(`ws://localhost:8001/api/ws?token=${jwt}`);
 
-            ws.onopen = (res) => {
-                console.log('oppen');
-                // messagesForm.addEventListener('submit', (e) => {
-                //     e.preventDefault();
-                //     send(ws);
-                // })
-            }
-
-            ws.onmessage = async (event) => {
-                let data = await JSON.parse(event.data);
-                console.log(data);
-            }
-
-            ws.onclose = (event) => {
-                console.log('WebSocket connection closed.');
-            }
+            const res = await fetch('http://localhost:8001/api/users/me', {
+                headers: {
+                    'authorization': 'Bearer ' + jwt
+                }
+            })
+            const value = await res.json();
+            console.log(value);
         }
     </script>
 </body>

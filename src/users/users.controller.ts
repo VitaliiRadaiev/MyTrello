@@ -89,6 +89,8 @@ export class UsersController extends BaseController {
 	}
 
 	async me(req: Request, res: Response, next: NextFunction): Promise<void> {
+		console.log(req.ip);
+		
 		try {
 			const user = await this.usersService.getUserInfo(req.user.id)
 			if (user) {
